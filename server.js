@@ -1,12 +1,13 @@
-const express = require('express'); //import
+const express = require('express'); 
 require('dotenv').config();
+const formulaireRoutes = require('./Routes/FormulaireR');
+const clientRoutes = require('./Routes/ClientR');
+require('./config/connect')
 
-const user = require('./Routes/user')
-require('./config/conncet')
-
-const app = express(); // creation d'une application qui utilise exprress js
+const app = express(); 
 app.use(express.json());
-app.use('/user', user)
-app.listen(3001, () => {
-    console.log('server working')
-}) // le serveur reste en ecoute
+app.use(express.urlencoded({ extended: true }));
+app.use('/api', formulaireRoutes);
+app.use('/api', clientRoutes);
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`Server running on port ${port}`));

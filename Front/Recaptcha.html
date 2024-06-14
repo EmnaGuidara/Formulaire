@@ -1,0 +1,101 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form with reCAPTCHA</title>
+</head>
+<body>
+    <form action="http://localhost:3000/api/formulaire" method="POST">
+        <label for="referalUrl">Referral URL:</label>
+        <input type="text" id="referalUrl" name="referalUrl" required>
+        <br>
+        <label for="content">Content:</label>
+        <textarea id="content" name="content" required></textarea>
+        <br>
+        <button type="submit" onclick="encryptAndSubmit()">Submit</button>
+    </form>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/forge/1.0.4/forge.min.js"></script>
+
+    <script>
+        async function encryptAndSubmit() {
+            
+            const referalUrl = document.getElementById('referalUrl').value;
+            const content = document.getElementById('content').value;
+            console.log('1')
+            // Fetch client's public key (replace with your actual endpoint)
+            const clientPublicKeyResponse = await fetch('http://localhost:3000/api/client/Key/' + encodeURIComponent(referalUrl));
+            const clientPublicKeyData = await clientPublicKeyResponse.json();
+            const clientPublicKeyPem = clientPublicKeyData.publicKey;
+            console.log('1')
+            // Convert PEM format to Forge's PublicKey object
+            const publicKey = forge.pki.publicKeyFromPem(clientPublicKeyPem);
+
+            // Encrypt the content using RSA-OAEP
+            const encryptedContentBytes = publicKey.encrypt(forge.util.encodeUtf8(content));
+            const encryptedContentBase64 = forge.util.encode64(encryptedContentBytes);
+
+            // Update the form fields with encrypted content
+            document.getElementById('content').value = encryptedContentBase64;
+
+            // Submit the form
+            document.getElementById('myForm').submit(); 
+        }
+    </script>
+</body>
+</html>
+ -->
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Form with reCAPTCHA</title>
+ </head>
+ <body>
+     <form id="myForm" action="http://localhost:3000/api/formulaire" method="POST" onsubmit="return encryptAndSubmit()">
+         <label for="referalUrl">Referral URL:</label>
+         <input type="text" id="referalUrl" name="referalUrl" required>
+         <br>
+         <label for="content">Content:</label>
+         <textarea id="content" name="content" required></textarea>
+         <br>
+         <button type="submit">Submit</button>
+     </form>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/forge/1.0.4/forge.min.js"></script>
+ 
+     <script>
+         async function encryptAndSubmit() {
+             try {
+                console.log('11')
+                 const referalUrl = document.getElementById('referalUrl').value;
+                 const content = document.getElementById('content').value;
+                
+                 console.log('11')
+                 // Fetch client's public key (replace with your actual endpoint)
+                 const clientPublicKeyResponse = await fetch('http://localhost:3000/api/client/Key/' + encodeURIComponent(referalUrl));
+                 const clientPublicKeyData = await clientPublicKeyResponse.json();
+                 const clientPublicKeyPem = clientPublicKeyData.publicKey;
+                
+                 console.log('11')
+                 // Convert PEM format to Forge's PublicKey object
+                 const publicKey = forge.pki.publicKeyFromPem(clientPublicKeyPem);
+                
+                 console.log('11')
+                 // Encrypt the content using RSA-OAEP
+                 const encryptedContentBytes = publicKey.encrypt(forge.util.encodeUtf8(content), 'RSA-OAEP');
+                 const encryptedContentBase64 = forge.util.encode64(encryptedContentBytes);
+ 
+                 // Update the form fields with encrypted content
+                 document.getElementById('content').value = encryptedContentBase64;
+ 
+                 return true; // Continue with form submission
+             } catch (error) {
+                 console.error('Error during encryption:', error);
+                 return false; // Prevent form submission
+             }
+         }
+     </script>
+ </body>
+ </html>
+ 
