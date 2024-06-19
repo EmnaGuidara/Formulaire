@@ -1,44 +1,12 @@
 const form = require('../Models/Formulaire')
 const Client = require('../Models/Client')
 const forge = require('node-forge');
-//const fetch = require('node-fetch');
 require('dotenv').config();
-/* 
-exports.addForm = async (req, rep) => {
-  try {
-    const { referalUrl, content } = await req.body;
-    console.log( referalUrl, content );
-    
-    const client = await Client.findOne({ referalUrl });
-   
-    if (!client) {
-      console.log('b');
-      return rep.status(404).send('client not found'); // Utilisez return pour éviter de continuer l'exécution du code
-    }
-    
-    const privateKey = forge.pki.privateKeyFromPem(client.privateKey);
-    const decryptedContent = forge.util.decodeUtf8(privateKey.decrypt(forge.util.decode64(content), 'RSA-OAEP'));
-    console.log('c');
-    const formulaire = new form({
-      clientId: client._id,
-      content: decryptedContent
-    });
-    await formulaire.save();
-    await Client.findByIdAndUpdate(client._id, { $push: { formulaires: formulaire._id } });
-    
-    console.log('d');
-    console.log(formulaire);
-    return rep.status(200).send(formulaire); // Utilisez return pour éviter de continuer l'exécution du code
-
-  } catch (error) {
-    return rep.status(500).send(error); // Utilisez return pour éviter de continuer l'exécution du code
-  }
-}; */
 
 exports.addForm = async (req, res) => {
   try {
-    const { referalUrl, content } =await req.body;
-    console.log( referalUrl, content)
+    const { referalUrl, content } = await req.body;
+    console.log(referalUrl, content)
     const client = await Client.findOne({ referalUrl });
 
     if (!client) {
@@ -50,7 +18,7 @@ exports.addForm = async (req, res) => {
     const decryptedContent = forge.util.decodeUtf8(privateKey.decrypt(forge.util.decode64(content), 'RSA-OAEP'));
 
     const formulaire = new form({
-      clientId: client._id,
+      Client_id: client._id,
       content: decryptedContent
     });
     await formulaire.save();

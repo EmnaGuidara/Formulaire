@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Form Encryption</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/forge/1.0.4/forge.min.js"></script>
+    <style>
+        #contentForm,
+        #encryptedContentDisplay,
+        #sendButton {
+            display: none;
+        }
+
+        .error {
+            color: red;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="initialForm">
+        <label for="referalUrl">Referal URL:</label>
+        <input type="text" id="referalUrl" name="referalUrl" required>
+        <button type="button" onclick="searchPublicKey()">Search</button>
+        <div id="errorMessage" class="error"></div>
+    </div>
+
+    <div id="contentForm">
+        <form id="encryptionForm" onsubmit="return encryptContent();">
+            <label for="content">Content:</label>
+            <textarea id="content" name="content" required></textarea>
+            <button type="submit">Encrypt</button>
+        </form>
+    </div>
+
+    <div id="encryptedContentDisplay" style="white-space: pre-wrap;"></div>
+    <button id="sendButton" type="button" onclick="sendEncryptedForm()">Send</button>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/forge/0.10.0/forge.min.js"></script>
+
+    <script>
+        let clientPublicKey;
+
+        async function searchPublicKey() {
+            try {
+                const referalUrl = document.getElementById('referalUrl').value;
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.textContent = '';
+                const clientResponse = await fetch('http://localhost:3000/api/client/Key/' + encodeURIComponent(referalUrl));
+                console.log('Fetch Response:', clientResponse);
+                errorMessage.textContent = 'Fetch Status: ' + clientResponse.status + ' ' + clientResponse.statusText;
+
+                if (!clientResponse.ok) {
+                    throw new Error('Client not found');
+                }
+
+                const clientData = await clientResponse.json();
+                console.log('Client data received:', clientData);
+
+                if (!clientData.publicKey) {
+                    throw new Error('Client not found');
+                }
+
+                const clientPublicKeyPem = clientData.publicKey;
+                clientPublicKey = forge.pki.publicKeyFromPem(clientPublicKeyPem);
+                document.getElementById('contentForm').style.display = 'block';
+            } catch (error) {
+                console.error('Error retrieving client data:', error);
+                errorMessage.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        function encryptContent() {
+            try {
+                const content = document.getElementById('content').value;
+                const encryptedContentBytes = clientPublicKey.encrypt(forge.util.encodeUtf8(content), 'RSA-OAEP');
+                const encryptedContentBase64 = forge.util.encode64(encryptedContentBytes);
+                const encryptedContentDisplay = document.getElementById('encryptedContentDisplay');
+                encryptedContentDisplay.textContent = 'Encrypted Content: ' + encryptedContentBase64;
+                encryptedContentDisplay.style.display = 'block';
+                document.getElementById('sendButton').style.display = 'block';
+                return false;
+            } catch (error) {
+                console.error('Error during encryption:', error);
+                return false;
+            }
+        }
+
+        async function sendEncryptedForm() {
+            try {
+                const referalUrl = document.getElementById('referalUrl').value;
+                const encryptedContent = document.getElementById('encryptedContentDisplay').textContent.replace('Encrypted Content: ', '');
+
+                const response = await fetch('http://localhost:3000/api/formulaire', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        referalUrl,
+                        content: encryptedContent
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to submit form');
+                }
+
+                const result = await response.json();
+                console.log('Form submitted successfully:', result);
+            } catch (error) {
+                console.error('Error submitting form:', error);
+            }
+        }
+
+        function createNewForm() {
+            document.getElementById('referalUrl').value = '';
+            document.getElementById('content').value = '';
+            document.getElementById('contentForm').style.display = 'none';
+            document.getElementById('encryptedContentDisplay').style.display = 'none';
+            document.getElementById('sendButton').style.display = 'none';
+            document.getElementById('errorMessage').textContent = '';
+        }
+    </script>
+</body>
+
+</html>

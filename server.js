@@ -1,10 +1,12 @@
 const express = require('express'); 
 require('dotenv').config();
+const cors = require('cors');
 const formulaireRoutes = require('./Routes/FormulaireR');
 const clientRoutes = require('./Routes/ClientR');
 require('./config/connect')
 
 const app = express(); 
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api', formulaireRoutes);

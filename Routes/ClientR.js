@@ -6,7 +6,7 @@ const router = express.Router()
 router.post('/client', clientController.addClient);
 
 router.get('/client/get/:id', clientController.getClient);
-router.get('/client/Key/:id', clientController.getClientKey);
+router.get('/client/Key/:referalUrl', clientController.getClientKey);
 
 router.get('/client/getForms/:id', clientController.getClientAndForms);
 
